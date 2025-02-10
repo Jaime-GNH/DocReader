@@ -9,7 +9,8 @@ import fitz
 from TTS.api import TTS
 from num2words import num2words
 from nicegui.events import UploadEventArguments
-import doc_reader.config as c
+from doc_reader.app.utils import get_download_folder
+import doc_reader.app.config as c
 
 
 class TextLoader:
@@ -209,6 +210,20 @@ class Text2Audio:
         return self.tts.tts(
             text=text,
             speaker=self.speaker,
-            speaker_wav=speaker_wav_path if self.speaker is None else None,
+            speaker_wav=speaker_wav_path if self.speaker is not None else None,
             language=self.language if self.tts.is_multi_lingual else None
         )
+
+    def text_to_file(self, text: str,
+                     file_name: str,
+                     speaker_wav_path: Optional[str] = None,
+                     speed: Optional[float] = 1.0):
+
+        if speaker_wav_path and not speaker_wav_path.endswith(".wav"):
+            speaker_wav_path += ".wav"
+        self.tts.tts_to_file(text=text,
+                             speaker=self.speaker,
+                             speaker_wav=speaker_wav_path if self.speaker is not None else None,
+                             language=self.language if self.tts.is_multi_lingual else None,
+                             speed=speed,
+                             file_path=os.path.join(get_download_folder(), file_name))

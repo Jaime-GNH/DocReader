@@ -1,16 +1,16 @@
 import os
 from functools import partial
-from nicegui import ui
+from nicegui import ui, native
 from nicegui.events import UploadEventArguments, ValueChangeEventArguments
-from doc_reader.app_components import TextLoader, TextProcessor, Text2Audio
-import doc_reader.config as c
+from doc_reader.app.app_components import TextLoader, TextProcessor, Text2Audio
+import doc_reader.app.config as c
 
 
 class App:
     def __init__(self):
-        self.APPNAME = "Convertir Documento a Audio"
+        self.APPNAME = "Lector de temas"
         self.audio = []
-        self.velocity = 1
+        self.velocity = 1.5
         self.speaker = None
         self.name = None
         self.device = c.DEVICE
@@ -21,7 +21,7 @@ class App:
             with ui.row().classes("w-full"):
                 ui.number(label="Velocidad",
                           placeholder=str(self.velocity),
-                          value=1,
+                          value=1.5,
                           min=0.25, max=4, step=0.25,
                           on_change=self.handle_velocity)
                 ui.select(self.txt2audio.get_available_models(language=c.LANGUAGE),
@@ -81,9 +81,13 @@ class App:
     def handle_upload(self, file: UploadEventArguments):
         self.name = file.name
         text = self.txt_processor.process(TextLoader.load_file(file))
-        ui.download(bytes(self.txt2audio.text_to_wav(text, self.speaker)),
-                    filename=self.name + '.wav',
-                    media_type="audio")
+        self.txt2audio.text_to_file(text=text,
+                                    file_name=self.name.replace(self.name.split(".")[-1],
+                                                                "wav"),
+                                    speaker_wav_path=self.speaker,
+                                    speed=self.velocity)
 
     def run_app(self):
-        ui.run(native=True, dark=True, title=self.APPNAME)
+        ui.run(
+            native=True, reload=False, port=native.find_open_port(),
+            dark=True, title=self.APPNAME)

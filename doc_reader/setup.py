@@ -1,12 +1,20 @@
-from setuptools import setup
+import cx_Freeze
+from setuptools import find_packages
+import sys
+sys.setrecursionlimit(20000)
+executables = [cx_Freeze.Executable("run.py", base="Win32GUI")]  # The main script
+build_exe_options = {
+    "packages": find_packages(exclude=["reporting", "resources", "scripts", "venv", ".git", ".idea"]),
+    "includes": ["TTS", "nicegui",
+                 "fitz", "num2words"],
+    "include_files": [
+        "app",
+        "../resources/speakers", "../resources/text_conversions.json"],
+    'build_exe': r'..\build'
+}
 
-setup(
-    name="doc_reader",
-    version="0.0.0.1",
-    packages=["doc_reader"],
-    install_requires=["python>=3.12",
-                      "coqui-tts>=0.25",
-                      "streamlit>=1.4",
-                      "python-dotenv>=1.0.1"],
-    description="App for converting text files to audio (Spanish)."
+cx_Freeze.setup(
+    name="text2audio",  # The name of the exe
+    options={"build_exe": build_exe_options},
+    executables=executables
 )
